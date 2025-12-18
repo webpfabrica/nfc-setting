@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Налаштування NFC міток</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .login-form, .tags-list, .sound-selection {
+            display: none;
+        }
+        
+        .login-form.active, .tags-list.active, .sound-selection.active {
+            display: block;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .tag-item {
+            display: flex;
+            align-items: center;
+            padding: 18px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .tag-item:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+        
+        .tag-color-circle {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 3px solid #ddd;
+            flex-shrink: 0;
+        }
+        
+        .tag-info {
+            flex: 1;
+        }
+        
+        .tag-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .tag-detail {
+            font-size: 14px;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .sound-item {
+            padding: 18px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+            font-size: 16px;
+        }
+        
+        .sound-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sound-item.selected {
+            background: #667eea;
+            color: white;
+            border-color: #5568d3;
+        }
+        
+        .sound-item .checkmark {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #ffe5e5;
+            border-radius: 8px;
+        }
+        
+        .success {
+            color: #27ae60;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #e5ffe5;
+            border-radius: 8px;
+        }
+        
+        .back-btn {
+            background: #95a5a6;
+            margin-top: 10px;
+        }
+        
+        .back-btn:hover {
+            background: #7f8c8d;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #667eea;
+            font-size: 16px;
+        }
+        
+        .no-tags {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .sound-icon {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏷️ Налаштування NFC міток</h1>
+        
+        <!-- Форма входу -->
+        <div class="login-form active">
+            <div id="loginError" class="error" style="display: none;"></div>
+            <input type="text" id="loginInput" placeholder="Логін">
+            <input type="password" id="passwordInput" placeholder="Пароль">
+            <button onclick="login()">Увійти</button>
+        </div>
+        
+        <!-- Список міток -->
+        <div class="tags-list">
+            <div id="tagsList"></div>
+            <button class="back-btn" onclick="logout()">Вийти</button>
+        </div>
+        
+        <!-- Вибір звуку -->
+        <div class="sound-selection">
+            <h2>Оберіть звук для мітки</h2>
+            <div id="soundsList"></div>
+            <button class="back-btn" onclick="backToTags()">Назад до міток</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCB7a3NJRdzdhGhkH4-YfS79q0Qqb1VrJk",
+            authDomain: "nfc-tools-5085d.firebaseapp.com",
+            databaseURL: "https://nfc-tools-5085d-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "nfc-tools-5085d",
+            storageBucket: "nfc-tools-5085d.firebasestorage.app",
+            messagingSenderId: "854184677066",
+            appId: "1:854184677066:web:b2c539c1a878a5773bee33",
+            measurementId: "G-HJFLJPHX3S"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        let currentUser = null;
+        let selectedTag = null;
+        
+        // Кольори для відображення
+        const COLOR_MAP = {
+            'red': '#dc3545',
+            'blue': '#0d6efd',
+            'green': '#198754',
+            'yellow': '#ffc107',
+            'orange': '#fd7e14',
+            'purple': '#6f42c1',
+            'black': '#212529',
+            'white': '#ffffff',
+            'brown': '#8b4513',
+            'pink': '#d63384'
+        };
+        
+        // Конфігурація звуків з повними шляхами
+        const SOUNDS_BASE_URL = 'sounds';
+        
+        const SOUNDS = [
+            { 
+                id: 'sound1', 
+                name: 'Туалетная Бумага', 
+                icon: '🔔',
+                path: `${SOUNDS_BASE_URL}/tualetnuiu-bumagu.mp3`,
+                fileName: 'tualetnuiu-bumagu.mp3'
+            },
+            { 
+                id: 'sound2', 
+                name: 'Стоны', 
+                icon: '🔔',
+                path: `${SOUNDS_BASE_URL}/stony-777.mp3`,
+                fileName: 'stony-777.mp3'
+            },
+            { 
+                id: 'sound3', 
+                name: 'Подзалупный творог', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/podzalupa-i-tvorog-sobralsia-rebiata.mp3`,
+                fileName: 'podzalupa-i-tvorog-sobralsia-rebiata.mp3'
+            },
+            { 
+                id: 'sound4', 
+                name: 'Дядя Саша', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/diadia-sasha.mp3`,
+                fileName: 'diadia-sasha.mp3'
+            },
+            { 
+                id: 'sound5', 
+                name: 'Улетаю на гаити', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/uletaiu-na-gaitii-no-eto-minus-ushi.mp3`,
+                fileName: 'uletaiu-na-gaitii-no-eto-minus-ushi.mp3'
+            },
+            { 
+                id: 'sound6', 
+                name: 'Грызть какашки', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/gryzt-kakashki.mp3`,
+                fileName: 'gryzt-kakashki.mp3'
+            },
+            { 
+                id: 'sound7', 
+                name: 'Арбуз арбуз привет', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/arbuz-arbuz-privet.mp3`,
+                fileName: 'arbuz-arbuz-privet.mp3'
+            },
+            { 
+                id: 'sound8', 
+                name: 'Лучше иметь друга чем друг друга', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/luchshe-imet-druga_xCZYGQu.mp3`,
+                fileName: 'luchshe-imet-druga_xCZYGQu.mp3'
+            },
+            { 
+                id: 'sound9', 
+                name: 'Меня снайпнули в полете', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/menia-snaipnuli-v-poliote.mp3`,
+                fileName: 'menia-snaipnuli-v-poliote.mp3'
+            },
+            { 
+                id: 'sound10', 
+                name: 'Этот повелитель дорог', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/etot-povelitel-dorog-sozdan-dlia-gonochnoi-trassy.mp3`,
+                fileName: 'etot-povelitel-dorog-sozdan-dlia-gonochnoi-trassy.mp3'
+            },
+            { 
+                id: 'sound11', 
+                name: 'Уточки', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/memy-igraiut-na-trubakh.mp3`,
+                fileName: 'memy-igraiut-na-trubakh.mp3'
+            },
+            { 
+                id: 'sound12', 
+                name: 'Плаки плаки нормалдаки', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/plaki-plaki-normaldaki.mp3`,
+                fileName: 'plaki-plaki-normaldaki.mp3'
+            },
+            { 
+                id: 'sound13', 
+                name: 'Кушай финики', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/kushai-finiki-zvuk.mp3`,
+                fileName: 'kushai-finiki-zvuk.mp3'
+            },
+            { 
+                id: 'sound14', 
+                name: 'Подлая еврейская музыка', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/podlaia-evreiskaia-muzyka-polnostiu.mp3`,
+                fileName: 'podlaia-evreiskaia-muzyka-polnostiu.mp3'
+            },
+            { 
+                id: 'sound15', 
+                name: 'Не смеши мой пенис', 
+                icon: '🎵',
+                path: `${SOUNDS_BASE_URL}/ne-smeshi-moi-pe.mp3`,
+                fileName: 'ne-smeshi-moi-pe.mp3'
+            },
+
+        ];
+        
+        // Перевірка збереженого входу при завантаженні
+        window.addEventListener('load', () => {
+            const savedLogin = localStorage.getItem('nfc_login');
+            const savedPassword = localStorage.getItem('nfc_password');
+            
+            if (savedLogin && savedPassword) {
+                document.getElementById('loginInput').value = savedLogin;
+                document.getElementById('passwordInput').value = savedPassword;
+                login(true);
+            }
+        });
+        
+        async function login(autoLogin = false) {
+            const login = document.getElementById('loginInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const errorDiv = document.getElementById('loginError');
+            
+            if (!login || !password) {
+                showError('Введіть логін та пароль');
+                return;
+            }
+            
+            try {
+                const usersRef = db.collection('users');
+                const snapshot = await usersRef.where('login', '==', login)
+                                              .where('password', '==', password)
+                                              .get();
+                
+                if (snapshot.empty) {
+                    showError('Невірний логін або пароль');
+                    if (autoLogin) {
+                        localStorage.removeItem('nfc_login');
+                        localStorage.removeItem('nfc_password');
+                    }
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    currentUser = doc.data();
+                    currentUser.docId = doc.id;
+                });
+                
+                // Зберігаємо дані в localStorage
+                localStorage.setItem('nfc_login', login);
+                localStorage.setItem('nfc_password', password);
+                
+                await loadUserTags();
+                
+            } catch (error) {
+                console.error('Помилка входу:', error);
+                showError('Помилка входу. Спробуйте пізніше.');
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 4000);
+        }
+        
+        async function loadUserTags() {
+            document.querySelector('.login-form').classList.remove('active');
+            document.querySelector('.tags-list').classList.add('active');
+            
+            const tagsList = document.getElementById('tagsList');
+            tagsList.innerHTML = '<div class="loading">Завантаження міток...</div>';
+            
+            try {
+                const tagsRef = db.collection('user_tags')
+                                 .doc(currentUser.user_id.toString())
+                                 .collection('tags');
+                
+                const snapshot = await tagsRef.orderBy('tag_number').get();
+                
+                tagsList.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    tagsList.innerHTML = '<div class="no-tags">У вас ще немає міток.<br>Придбайте їх у боті!</div>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const tag = doc.data();
+                    tag.id = doc.id;
+                    
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'tag-item';
+                    tagElement.onclick = () => selectTag(tag);
+                    
+                    const colorHex = COLOR_MAP[tag.color] || '#cccccc';
+                    const borderStyle = tag.color === 'white' ? 'border: 3px solid #333;' : '';
+                    
+                    const soundText = tag.sound_name ? 
+                        `<div class="tag-detail">Звук: ${tag.sound_icon || '🔔'} ${tag.sound_name}</div>` : 
+                        '<div class="tag-detail" style="color: #999;">Звук не обрано</div>';
+                    
+                    tagElement.innerHTML = `
+                        <div class="tag-color-circle" style="background-color: ${colorHex}; ${borderStyle}"></div>
+                        <div class="tag-info">
+                            <div class="tag-name">Мітка #${tag.tag_number}</div>
+                            <div class="tag-detail">Колір: ${tag.color_ukrainian}</div>
+                            ${soundText}
+                        </div>
+                    `;
+                    
+                    tagsList.appendChild(tagElement);
+                });
+                
+            } catch (error) {
+                console.error('Помилка завантаження міток:', error);
+                tagsList.innerHTML = '<div class="error">Помилка завантаження міток</div>';
+            }
+        }
+        
+        function selectTag(tag) {
+            selectedTag = tag;
+            showSounds();
+        }
+        
+        function showSounds() {
+            document.querySelector('.tags-list').classList.remove('active');
+            document.querySelector('.sound-selection').classList.add('active');
+            
+            const soundsList = document.getElementById('soundsList');
+            soundsList.innerHTML = '';
+            
+            SOUNDS.forEach(sound => {
+                const soundElement = document.createElement('div');
+                soundElement.className = 'sound-item';
+                const isSelected = selectedTag.sound_id === sound.id;
+                
+                if (isSelected) {
+                    soundElement.classList.add('selected');
+                }
+                
+                soundElement.onclick = () => selectSound(sound);
+                soundElement.innerHTML = `
+                    <span><span class="sound-icon">${sound.icon}</span>${sound.name}</span>
+                    ${isSelected ? '<span class="checkmark">✓</span>' : ''}
+                `;
+                
+                soundsList.appendChild(soundElement);
+            });
+        }
+        
+        async function selectSound(sound) {
+            try {
+                const tagRef = db.collection('user_tags')
+                                .doc(currentUser.user_id.toString())
+                                .collection('tags')
+                                .doc(selectedTag.id);
+                
+                // Зберігаємо повний шлях до звуку
+                await tagRef.update({
+                    sound_id: sound.id,
+                    sound_name: sound.name,
+                    sound_icon: sound.icon,
+                    sound_path: sound.path,
+                    sound_file_name: sound.fileName,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert('✅ Звук збережено!');
+                await loadUserTags();
+                
+            } catch (error) {
+                console.error('Помилка збереження:', error);
+                alert('❌ Помилка збереження. Спробуйте ще раз.');
+            }
+        }
+        
+        function backToTags() {
+            document.querySelector('.sound-selection').classList.remove('active');
+            document.querySelector('.tags-list').classList.add('active');
+        }
+        
+        function logout() {
+            currentUser = null;
+            
+            // Видаляємо дані з localStorage
+            localStorage.removeItem('nfc_login');
+            localStorage.removeItem('nfc_password');
+            
+            document.querySelector('.tags-list').classList.remove('active');
+            document.querySelector('.login-form').classList.add('active');
+            document.getElementById('loginInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+        
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+        
+        document.getElementById('loginInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('passwordInput').focus();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Налаштування NFC міток</title>
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #7a1bd2;
+            --secondary: #00d4ff;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 500px;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            display: block;
+            text-shadow: 0 0 20px var(--secondary);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .section {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .tags-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .tag-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .tag-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .tag-card.active {
+            border-color: var(--primary);
+            background: rgba(138, 43, 226, 0.15);
+        }
+        
+        .tag-color {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tag-number {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .tag-info {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .tag-sound {
+            font-size: 11px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .sounds-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .sounds-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sounds-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .sounds-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        
+        .sound-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 2px solid transparent;
+        }
+        
+        .sound-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+        
+        .sound-item.selected {
+            background: rgba(138, 43, 226, 0.2);
+            border-color: var(--primary);
+        }
+        
+        .sound-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            background: rgba(138, 43, 226, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sound-info {
+            flex: 1;
+        }
+        
+        .sound-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 3px;
+        }
+        
+        .sound-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        .sound-check {
+            color: var(--secondary);
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(138, 43, 226, 0.3);
+            background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 350px;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+        
+        .notification-icon {
+            font-size: 20px;
+        }
+        
+        .no-tags {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .no-tags-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--gray);
+        }
+        
+        .tag-preview {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+        
+        .preview-color {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .preview-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .preview-subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .login-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .login-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .login-message {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+        
+        .login-details {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .color-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">🏷️</div>
+            <h1>Налаштування NFC</h1>
+            <div class="subtitle">Обирайте звуки для ваших міток</div>
+        </div>
+        
+        <!-- Экран загрузки -->
+        <div class="section loading active" id="loadingSection">
+            <div class="loading-spinner"></div>
+            <div>Перевірка авторизації...</div>
+        </div>
+        
+        <!-- Список меток -->
+        <div class="section" id="tagsSection">
+            <h2 style="margin-bottom: 20px;">Ваші NFC мітки</h2>
+            <div id="tagsList" class="tags-grid"></div>
+            <div id="noTagsMessage" class="no-tags" style="display: none;">
+                <div class="no-tags-icon">🏷️</div>
+                <h3>Немає міток</h3>
+                <p style="color: var(--gray); margin-top: 10px;">
+                    У вас ще немає NFC міток.<br>
+                    Придбайте їх у нашому Telegram боті!
+                </p>
+            </div>
+            <button class="btn" onclick="logout()">
+                <span>🔓</span> Вийти з акаунта
+            </button>
+        </div>
+        
+        <!-- Выбор звука -->
+        <div class="section" id="soundsSection">
+            <div id="tagPreview" class="tag-preview"></div>
+            <h2 style="margin-bottom: 20px;">Оберіть звук</h2>
+            <div class="sounds-container" id="soundsList"></div>
+            <button class="btn btn-secondary" onclick="backToTags()">
+                <span>←</span> Назад до міток
+            </button>
+        </div>
+        
+        <!-- Экран авторизации -->
+        <div class="section" id="loginSection">
+            <div class="login-container">
+                <div class="login-icon">🔒</div>
+                <div class="login-message">Авторизація</div>
+                <div class="login-details" id="loginStatus">
+                    Виконується автоматичний вхід...
+                </div>
+                <div id="manualLogin" style="display: none;">
+                    <p style="margin-bottom: 20px; color: var(--gray);">
+                        Автоматичний вхід не вдався.<br>
+                        Зверніться до адміністратора.
+                    </p>
+                    <button class="btn" onclick="location.reload()">
+                        <span>🔄</span> Спробувати знову
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase конфигурация
+        const firebaseConfig = {
+            apiKey: "AIzaSyCB7a3NJRdzdhGhkH4-YfS79q0Qqb1VrJk",
+            authDomain: "nfc-tools-5085d.firebaseapp.com",
+            databaseURL: "https://nfc-tools-5085d-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "nfc-tools-5085d",
+            storageBucket: "nfc-tools-5085d.firebasestorage.app",
+            messagingSenderId: "854184677066",
+            appId: "1:854184677066:web:b2c539c1a878a5773bee33",
+            measurementId: "G-HJFLJPHX3S"
+        };
+        
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Переменные приложения
+        let currentUser = null;
+        let selectedTag = null;
+        let userTags = [];
+        
+        // Цвета для меток
+        const COLOR_MAP = {
+            'red': '#dc3545',
+            'blue': '#0d6efd',
+            'green': '#198754',
+            'yellow': '#ffc107',
+            'orange': '#fd7e14',
+            'purple': '#6f42c1',
+            'black': '#212529',
+            'white': '#ffffff',
+            'brown': '#8b4513',
+            'pink': '#d63384'
+        };
+        
+        // Русские названия цветов
+        const COLOR_NAMES = {
+            'red': 'Червоний',
+            'blue': 'Синій',
+            'green': 'Зелений',
+            'yellow': 'Жовтий',
+            'orange': 'Помаранчевий',
+            'purple': 'Фіолетовий',
+            'black': 'Чорний',
+            'white': 'Білий',
+            'brown': 'Коричневий',
+            'pink': 'Рожевий'
+        };
+        
+        // Список звуков
+        const SOUNDS = [
+    { 
+        id: 'sound1', 
+        name: 'Минус много iq', 
+        icon: '🧻',
+        description: '-1000000000000 IQ',
+        emoji: '🎵',
+        fileName: '1-000-000-000-iq.mp3'
+    },
+    { 
+        id: 'sound2', 
+        name: '-999 Social', 
+        icon: '😫',
+        description: '999-social-credit-siren',
+        emoji: '🔊',
+        fileName: '999-social-credit-siren.mp3'
+    },
+    { 
+        id: 'sound3', 
+        name: 'aaaaaaaaaaaa', 
+        icon: '🧀',
+        description: 'aaaaaaaaaaaaaaaaaaaa',
+        emoji: '🎉',
+        fileName: 'aaaaaaaaaaaaaaaaaaaa-e-lutador.mp3'
+    },
+    { 
+        id: 'sound4', 
+        name: 'Буба Пирожок', 
+        icon: '👨‍🦰',
+        description: 'Буба Пирожок',
+        emoji: '👋',
+        fileName: 'buba-pirozhok.mp3'
+    },
+    { 
+        id: 'sound5', 
+        name: 'Кот ржет', 
+        icon: '🧻',
+        description: 'Кот ржет',
+        emoji: '🎵',
+        fileName: 'cat-laugh-meme-1.mp3'
+    },
+    { 
+        id: 'sound6', 
+        name: 'Кто тото орет', 
+        icon: '😫',
+        description: 'Кто то орет как конченый',
+        emoji: '🔊',
+        fileName: 'chicken-on-tree-screaming.mp3'
+    },
+    { 
+        id: 'sound7', 
+        name: 'Девушка жостко стонет', 
+        icon: '🧀',
+        description: 'Девка жоско стонет',
+        emoji: '🎉',
+        fileName: 'devushka-tak-silno-stonet.mp3'
+    },
+    { 
+        id: 'sound8', 
+        name: 'Dexter', 
+        icon: '🩸',
+        description: 'Мем Dexter',
+        emoji: '🎬',
+        fileName: 'dexter-meme.mp3'
+    },
+    { 
+        id: 'sound9', 
+        name: 'Дядя Саша', 
+        icon: '👨',
+        description: 'Дядя Саша',
+        emoji: '🎤',
+        fileName: 'diadia-sasha.mp3'
+    },
+    { 
+        id: 'sound10', 
+        name: 'Димон', 
+        icon: '💼',
+        description: 'Димона, ДИМОН, Бумер',
+        emoji: '📢',
+        fileName: 'dimon.mp3'
+    },
+    { 
+        id: 'sound11', 
+        name: 'Pro-metai', 
+        icon: '🚀',
+        description: 'Pro-metai',
+        emoji: '⚡',
+        fileName: 'Pro-metai.mp3'
+    },
+    { 
+        id: 'sound12', 
+        name: 'Fah', 
+        icon: '😤',
+        description: 'Fahhhhhhhhhhh',
+        emoji: '💨',
+        fileName: 'fahhhhhhhhhhhh.mp3'
+    },
+    { 
+        id: 'sound13', 
+        name: 'Gay', 
+        icon: '🌈',
+        description: 'Gay',
+        emoji: '🎶',
+        fileName: 'gay.mp3'
+    },
+    { 
+        id: 'sound14', 
+        name: 'Германия', 
+        icon: '🇩🇪',
+        description: 'Германия',
+        emoji: '🎵',
+        fileName: 'germaniia.mp3'
+    },
+    { 
+        id: 'sound15', 
+        name: 'Goo Goo Gaga', 
+        icon: '👶',
+        description: 'Goo-goo-gagaaa',
+        emoji: '🍼',
+        fileName: 'goo-goo-gagaaa.mp3'
+    },
+    { 
+        id: 'sound16', 
+        name: 'Грызет какашки', 
+        icon: '💩',
+        description: 'Грызет какашки',
+        emoji: '😬',
+        fileName: 'gryzt-kakashki.mp3'
+    },
+    { 
+        id: 'sound17', 
+        name: 'Гудок поезда', 
+        icon: '🚂',
+        description: 'Гудок поезда',
+        emoji: '📯',
+        fileName: 'gudok-poezda.mp3'
+    },
+    { 
+        id: 'sound18', 
+        name: 'Я насрал в турбину', 
+        icon: '💩',
+        description: 'Я насрал в турбину',
+        emoji: '🛩️',
+        fileName: 'ia-nasral-v-turbinu.mp3'
+    },
+    { 
+        id: 'sound19', 
+        name: 'Imbo отрыжка', 
+        icon: '🤢',
+        description: 'Imbo отрыжка',
+        emoji: '🎤',
+        fileName: 'imbo-otryzhka.mp3'
+    },
+    { 
+        id: 'sound20', 
+        name: 'Kimpintiao', 
+        icon: '👖',
+        description: 'Kimpintiao',
+        emoji: '🎵',
+        fileName: 'kimpintiao.mp3'
+    },
+    { 
+        id: 'sound21', 
+        name: 'Кошка бросила котят', 
+        icon: '🐱',
+        description: 'Кошка бросила котят',
+        emoji: '😿',
+        fileName: 'kosha-brosila-kotiat.mp3'
+    },
+    { 
+        id: 'sound22', 
+        name: 'Лоботомия', 
+        icon: '🧠',
+        description: 'Лоботомия sound effect',
+        emoji: '⚡',
+        fileName: 'lobotomy-sound-ef.mp3'
+    },
+    { 
+        id: 'sound23', 
+        name: 'Лучший рингтон', 
+        icon: '📱',
+        description: 'Лучший рингтон на',
+        emoji: '🎶',
+        fileName: 'luchshii-rington-na.mp3'
+    },
+    { 
+        id: 'sound24', 
+        name: 'Marmok Soundpad', 
+        icon: '🎮',
+        description: 'Marmok soundpad',
+        emoji: '🔊',
+        fileName: 'marmok-soundpad.mp3'
+    },
+    { 
+        id: 'sound25', 
+        name: 'Net idi na', 
+        icon: '🙅',
+        description: 'Net idi na',
+        emoji: '🚫',
+        fileName: 'net-idi-na.mp3'
+    },
+    { 
+        id: 'sound26', 
+        name: 'Oi Oi Oe', 
+        icon: '🎤',
+        description: 'Oi-oi-oe-oi-a-eye-e',
+        emoji: '🎵',
+        fileName: 'oi-oi-oe-oi-a-eye-e.mp3'
+    },
+    { 
+        id: 'sound27', 
+        name: 'Perduliatsia', 
+        icon: '🌀',
+        description: 'Perduliatsia',
+        emoji: '🎶',
+        fileName: 'perduliatsia.mp3'
+    },
+    { 
+        id: 'sound28', 
+        name: 'Pkh', 
+        icon: '💨',
+        description: 'Pkh',
+        emoji: '😤',
+        fileName: 'pkh.mp3'
+    },
+    { 
+        id: 'sound29', 
+        name: 'Под новый год', 
+        icon: '🎄',
+        description: 'Под новый год нас',
+        emoji: '🎉',
+        fileName: 'pod-novyi-god-nas.mp3'
+    },
+    { 
+        id: 'sound30', 
+        name: 'Пожарная тревога', 
+        icon: '🚨',
+        description: 'Пожарная тревога',
+        emoji: '🔥',
+        fileName: 'pozharniaia-trevoga.mp3'
+    },
+    { 
+        id: 'sound31', 
+        name: 'Путин виноват', 
+        icon: '🇷🇺',
+        description: 'Путин виноват',
+        emoji: '🗣️',
+        fileName: 'putin-vinovat.mp3'
+    },
+    { 
+        id: 'sound32', 
+        name: 'Sad Meow Song', 
+        icon: '😿',
+        description: 'Sad Meow Song',
+        emoji: '🎵',
+        fileName: 'sad-meow-song.mp3'
+    },
+    { 
+        id: 'sound33', 
+        name: 'Система поиска', 
+        icon: '🔍',
+        description: 'Система поиска',
+        emoji: '📢',
+        fileName: 'sistema-poiska-pi-sa.mp3'
+    },
+    { 
+        id: 'sound34', 
+        name: 'Скачай Макс', 
+        icon: '📥',
+        description: 'Скачай Макс',
+        emoji: '💾',
+        fileName: 'skachai-maks.mp3'
+    },
+    { 
+        id: 'sound35', 
+        name: 'Скелет со щитом', 
+        icon: '💀',
+        description: 'Skeleton with shield',
+        emoji: '🛡️',
+        fileName: 'skeleton-with-shield.mp3'
+    },
+    { 
+        id: 'sound36', 
+        name: 'Смех ребенка', 
+        icon: '😄',
+        description: 'Смех ребенка',
+        emoji: '👶',
+        fileName: 'smekh-rebenka.mp3'
+    },
+    { 
+        id: 'sound37', 
+        name: 'Смешарики погоня', 
+        icon: '🐷',
+        description: 'Смешарики погоня',
+        emoji: '🎬',
+        fileName: 'smeshariki-pogonia.mp3'
+    },
+    { 
+        id: 'sound38', 
+        name: 'Stop мне не прият', 
+        icon: '✋',
+        description: 'Stop мне не прият',
+        emoji: '😣',
+        fileName: 'stop-mne-ne-priiat.mp3'
+    },
+    { 
+        id: 'sound39', 
+        name: 'Subo песня', 
+        icon: '🎤',
+        description: 'Subo песня',
+        emoji: '🎵',
+        fileName: 'subo-pesnia.mp3'
+    },
+    { 
+        id: 'sound40', 
+        name: 'Визг свиньи', 
+        icon: '🐷',
+        description: 'Визг свиньи',
+        emoji: '😱',
+        fileName: 'vizg-svini.mp3'
+    },
+    { 
+        id: 'sound41', 
+        name: 'Votch Demo', 
+        icon: '⌚',
+        description: 'Votch Demo',
+        emoji: '🔊',
+        fileName: 'votch-demo.mp3'
+    },
+    { 
+        id: 'sound42', 
+        name: 'Зайка давай', 
+        icon: '🐇',
+        description: 'Зайка давай',
+        emoji: '🎤',
+        fileName: 'zaika-davai.mp3'
+    },
+    { 
+        id: 'sound43', 
+        name: 'Жиоская отрыжка', 
+        icon: '🤮',
+        description: 'Жиоская отрыжка',
+        emoji: '💨',
+        fileName: 'zhioistkaia-otryzhka.mp3'
+    },
+    { 
+        id: 'sound44', 
+        name: 'Звук Литвина', 
+        icon: '🎙️',
+        description: 'Звук Литвина',
+        emoji: '🎵',
+        fileName: 'zvuk-litvina.mp3'
+    }
+];
+        
+        // Главная функция инициализации
+        async function initApp() {
+            try {
+                // Проверяем параметры URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user');
+                const tagId = urlParams.get('tag');
+                
+                // Пробуем найти пользователя по userId
+                if (userId) {
+                    await tryAutoLogin(userId);
+                    return;
+                }
+                
+                // Если нет параметров, проверяем localStorage
+                const savedLogin = localStorage.getItem('nfc_login');
+                const savedPassword = localStorage.getItem('nfc_password');
+                
+                if (savedLogin && savedPassword) {
+                    await manualLogin(savedLogin, savedPassword);
+                    return;
+                }
+                
+                // Если ничего не найдено - показываем экран авторизации
+                showLoginScreen();
+                
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                showNotification('Помилка завантаження', true);
+                showLoginScreen();
+            }
+        }
+        
+        // Автоматический вход по ID пользователя
+        async function tryAutoLogin(userId) {
+            try {
+                updateLoginStatus('Пошук користувача...');
+                
+                // Ищем пользователя в базе данных
+                const userDoc = await db.collection('users').doc(userId.toString()).get();
+                
+                if (!userDoc.exists) {
+                    throw new Error('Користувач не знайдений');
+                }
+                
+                const userData = userDoc.data();
+                currentUser = {
+                    user_id: userData.user_id,
+                    login: userData.login,
+                    password: userData.password,
+                    docId: userDoc.id
+                };
+                
+                // Сохраняем в localStorage для будущих входов
+                localStorage.setItem('nfc_login', userData.login);
+                localStorage.setItem('nfc_password', userData.password);
+                
+                updateLoginStatus('Завантаження міток...');
+                
+                // Загружаем метки пользователя
+                await loadUserTags();
+                
+                showNotification('Авторизація успішна!');
+                
+            } catch (error) {
+                console.error('Ошибка автоматического входа:', error);
+                updateLoginStatus('Помилка авторизації', true);
+                
+                // Показываем кнопку для ручного входа
+                setTimeout(() => {
+                    document.getElementById('manualLogin').style.display = 'block';
+                }, 2000);
+            }
+        }
+        
+        // Ручной вход по логину и паролю
+        async function manualLogin(login, password) {
+            try {
+                updateLoginStatus('Перевірка даних...');
+                
+                const usersRef = db.collection('users');
+                const snapshot = await usersRef
+                    .where('login', '==', login)
+                    .where('password', '==', password)
+                    .get();
+                
+                if (snapshot.empty) {
+                    throw new Error('Невірний логін або пароль');
+                }
+                
+                snapshot.forEach(doc => {
+                    currentUser = {
+                        ...doc.data(),
+                        docId: doc.id
+                    };
+                });
+                
+                // Загружаем метки пользователя
+                await loadUserTags();
+                
+            } catch (error) {
+                console.error('Ошибка ручного входа:', error);
+                showNotification('Помилка входу', true);
+                showLoginScreen();
+            }
+        }
+        
+        // Обновление статуса авторизации
+        function updateLoginStatus(message, isError = false) {
+            const statusElement = document.getElementById('loginStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.style.color = isError ? 'var(--danger)' : 'var(--secondary)';
+            }
+        }
+        
+        // Загрузка меток пользователя
+        async function loadUserTags() {
+            try {
+                hideAllSections();
+                document.getElementById('tagsSection').classList.add('active');
+                
+                const tagsListElement = document.getElementById('tagsList');
+                tagsListElement.innerHTML = '';
+                
+                // Получаем метки пользователя
+                const tagsRef = db.collection('user_tags')
+                    .doc(currentUser.user_id.toString())
+                    .collection('tags');
+                
+                const snapshot = await tagsRef.orderBy('tag_number').get();
+                
+                if (snapshot.empty) {
+                    document.getElementById('noTagsMessage').style.display = 'block';
+                    return;
+                }
+                
+                userTags = [];
+                snapshot.forEach(doc => {
+                    const tag = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                    userTags.push(tag);
+                    
+                    // Создаем карточку метки
+                    const colorHex = COLOR_MAP[tag.color] || '#cccccc';
+                    const borderStyle = tag.color === 'white' ? 'border-color: #666;' : '';
+                    
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'tag-card';
+                    tagElement.onclick = () => selectTag(tag);
+                    
+                    // Определяем иконку звука
+                    let soundIcon = '🔕';
+                    let soundName = 'Без звуку';
+                    
+                    if (tag.sound_icon) {
+                        soundIcon = tag.sound_icon;
+                        soundName = tag.sound_name || 'Звук';
+                    }
+                    
+                    tagElement.innerHTML = `
+                        <div class="tag-color" style="background-color: ${colorHex}; ${borderStyle}"></div>
+                        <div class="tag-number">Мітка #${tag.tag_number}</div>
+                        <div class="tag-info">${COLOR_NAMES[tag.color] || tag.color}</div>
+                        <div class="tag-sound">
+                            ${soundIcon} ${soundName.substring(0, 10)}${soundName.length > 10 ? '...' : ''}
+                        </div>
+                    `;
+                    
+                    tagsListElement.appendChild(tagElement);
+                });
+                
+            } catch (error) {
+                console.error('Ошибка загрузки меток:', error);
+                showNotification('Помилка завантаження міток', true);
+            }
+        }
+        
+        // Выбор метки для настройки
+        function selectTag(tag) {
+            selectedTag = tag;
+            
+            // Обновляем превью метки
+            const previewElement = document.getElementById('tagPreview');
+            const colorHex = COLOR_MAP[tag.color] || '#cccccc';
+            const borderStyle = tag.color === 'white' ? 'border-color: #666;' : '';
+            
+            previewElement.innerHTML = `
+                <div class="preview-color" style="background-color: ${colorHex}; ${borderStyle}"></div>
+                <div class="preview-title">Мітка #${tag.tag_number}</div>
+                <div class="preview-subtitle">${COLOR_NAMES[tag.color] || tag.color}</div>
+            `;
+            
+            // Показываем список звуков
+            showSoundsList();
+        }
+        
+        // Показать список звуков
+        function showSoundsList() {
+            hideAllSections();
+            document.getElementById('soundsSection').classList.add('active');
+            
+            const soundsListElement = document.getElementById('soundsList');
+            soundsListElement.innerHTML = '';
+            
+            SOUNDS.forEach(sound => {
+                const isSelected = selectedTag.sound_id === sound.id;
+                
+                const soundElement = document.createElement('div');
+                soundElement.className = `sound-item ${isSelected ? 'selected' : ''}`;
+                soundElement.onclick = () => selectSound(sound);
+                
+                soundElement.innerHTML = `
+                    <div class="sound-icon">${sound.icon}</div>
+                    <div class="sound-info">
+                        <div class="sound-name">${sound.name}</div>
+                        <div class="sound-desc">${sound.description}</div>
+                    </div>
+                    ${isSelected ? '<div class="sound-check">✓</div>' : ''}
+                `;
+                
+                soundsListElement.appendChild(soundElement);
+            });
+        }
+        
+        // Выбор звука для метки
+        async function selectSound(sound) {
+            try {
+                // Обновляем метку в базе данных
+                const tagRef = db.collection('user_tags')
+                    .doc(currentUser.user_id.toString())
+                    .collection('tags')
+                    .doc(selectedTag.id);
+                
+                await tagRef.update({
+                    sound_id: sound.id,
+                    sound_name: sound.name,
+                    sound_icon: sound.emoji || '🔔',
+                    sound_file_name: sound.fileName,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Обновляем локальные данные
+                selectedTag.sound_id = sound.id;
+                selectedTag.sound_name = sound.name;
+                selectedTag.sound_icon = sound.emoji || '🔔';
+                
+                showNotification(`Звук "${sound.name}" збережено!`);
+                
+                // Возвращаемся к списку меток через 1 секунду
+                setTimeout(() => {
+                    loadUserTags();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Ошибка сохранения звука:', error);
+                showNotification('Помилка збереження звука', true);
+            }
+        }
+        
+        // Выход из аккаунта
+        function logout() {
+            currentUser = null;
+            selectedTag = null;
+            userTags = [];
+            
+            // Очищаем localStorage
+            localStorage.removeItem('nfc_login');
+            localStorage.removeItem('nfc_password');
+            
+            // Показываем экран авторизации
+            showLoginScreen();
+        }
+        
+        // Назад к списку меток
+        function backToTags() {
+            loadUserTags();
+        }
+        
+        // Показать экран авторизации
+        function showLoginScreen() {
+            hideAllSections();
+            document.getElementById('loginSection').classList.add('active');
+        }
+        
+        // Скрыть все секции
+        function hideAllSections() {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+        }
+        
+        // Показать уведомление
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.innerHTML = `
+                <div class="notification-icon">${isError ? '❌' : '✅'}</div>
+                <div>${message}</div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Удаляем уведомление через 3 секунды
+            setTimeout(() => {
+                notification.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Инициализация при загрузке страницы
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                initApp();
+            }, 1000); // Небольшая задержка для плавности
+        });
+    </script>
+</body>
+</html>
